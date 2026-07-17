@@ -1,0 +1,37 @@
+name: Build Windows EXE
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pyinstaller
+
+      - name: Build single-file EXE
+        run: python -m PyInstaller --noconfirm --clean SverkaOFD-win.spec
+
+      - name: Prepare distribution folder
+        shell: cmd
+        run: |
+          mkdir dist\Windows-dist
+          copy dist\SverkaOFD.exe dist\Windows-dist\SverkaOFD.exe
+          copy ИНСТРУКЦИЯ_ДЛЯ_WINDOWS.txt dist\Windows-dist\ИНСТРУКЦИЯ_ДЛЯ_WINDOWS.txt
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SverkaOFD-Windows
+          path: dist/Windows-dist/
